@@ -1,5 +1,6 @@
 package com.example.gatewaycontrol
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -7,42 +8,35 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.gatewaycontrol.api.RetrofitInstance
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.gatewaycontrol.room.Remote
+import com.example.gatewaycontrol.utils.Constants.Companion.REMOTE_TYPE_RF
+import com.example.gatewaycontrol.utils.Constants.Companion.REMOTE_TYPE_TV
+import kotlinx.coroutines.*
 import retrofit2.awaitResponse
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var rvRemote : RecyclerView
     private val api = RetrofitInstance
+    private var listRemote: ArrayList<Remote> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val btn: Button = findViewById(R.id.button)
-        val btn2: Button = findViewById(R.id.button2)
-        val btn3: Button = findViewById(R.id.button3)
-        val btn4: Button = findViewById(R.id.button4)
 
-        btn.setOnClickListener {
-            getIrReceiver()
+        rvRemote = findViewById(R.id.rv)
+        rvRemote.setHasFixedSize(true)
 
-        }
+        showRecyclerList()
+    }
 
-        btn2.setOnClickListener{
-            getRfReceiver()
-        }
-
-        btn3.setOnClickListener{
-            sendRfSender()
-        }
-
-        btn4.setOnClickListener {
-            sendIrSender()
-        }
-
+    private fun showRecyclerList() {
+        rvRemote.layoutManager = LinearLayoutManager(this)
+        val listRemoteAdapter = ListRemoteAdapter(listRemote)
+        rvRemote.adapter = listRemoteAdapter
 
     }
 
@@ -52,15 +46,15 @@ class MainActivity : AppCompatActivity() {
         val length = "38"
 
 
-        GlobalScope.launch(Dispatchers.IO) {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
-                val res = api.apiScarlar.sendIR(protocol,value,length).awaitResponse()
+                val res = api.apiScarlar.sendIR(protocol, value, length).awaitResponse()
                 if (res.isSuccessful) {
                     Toast.makeText(applicationContext, "Sended....!!", Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
-                withContext(Dispatchers.IO){
+                withContext(Dispatchers.IO) {
 
                 }
 
@@ -71,7 +65,7 @@ class MainActivity : AppCompatActivity() {
     private fun sendRfSender() {
         val value = "10000000001"
 
-        GlobalScope.launch(Dispatchers.IO) {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 val res = api.apiScarlar.sendRF(value).awaitResponse()
                 if (res.isSuccessful) {
@@ -79,7 +73,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                withContext(Dispatchers.IO){
+                withContext(Dispatchers.IO) {
 
                 }
 
@@ -90,7 +84,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getRfReceiver() {
 
-        GlobalScope.launch(Dispatchers.IO) {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
 
                 val res = api.apiScarlar.getRF().awaitResponse()
@@ -100,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                withContext(Dispatchers.IO){
+                withContext(Dispatchers.IO) {
 
                 }
 
@@ -110,7 +104,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getIrReceiver() {
 
-        GlobalScope.launch(Dispatchers.IO) {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 val res = api.apiGson.getIR().awaitResponse()
                 if (res.isSuccessful) {
@@ -121,8 +115,9 @@ class MainActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                withContext(Dispatchers.IO){
-                    Toast.makeText(applicationContext, "Something wrong!!!!", Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.IO) {
+                    Toast.makeText(applicationContext, "Something wrong!!!!", Toast.LENGTH_SHORT)
+                        .show()
                 }
 
             }
@@ -143,14 +138,21 @@ class MainActivity : AppCompatActivity() {
     private fun setMode(selected: Int) {
         when (selected) {
             R.id.add_remote -> {
-                Toast.makeText(this, "Add Remote Muehehe", Toast.LENGTH_SHORT).show()
+                startActivity(
+                    Intent(this@MainActivity, AddRemoteActivity::class.java)
+                )
+                listRemote.add(Remote(0,"REMOTE TEST TV" , REMOTE_TYPE_TV))
+                rvRemote.adapter!!.notifyDataSetChanged()
             }
             R.id.action_2 -> {
-
-
+                Toast.makeText(this, "ACtion 2 ", Toast.LENGTH_SHORT).show()
+                listRemote.add(Remote(1,"REMOTE TEST RF" , REMOTE_TYPE_RF))
+                rvRemote.adapter!!.notifyDataSetChanged()
             }
             R.id.action_3 -> {
                 Toast.makeText(this, "ACtion 3 Muehehe", Toast.LENGTH_SHORT).show()
+                listRemote.add(Remote(2,"REMOTE" , REMOTE_TYPE_RF))
+                rvRemote.adapter!!.notifyDataSetChanged()
             }
         }
     }
