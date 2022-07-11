@@ -7,7 +7,7 @@ import android.widget.Button
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gatewaycontrol.room.Remote
 
-class ListRemoteAdapter(private val listRemote: ArrayList<Remote>) :
+class ListRemoteAdapter(private val listRemote: ArrayList<Remote>, private val listener: onClickListener) :
     RecyclerView.Adapter<ListRemoteAdapter.ListViewHolder>() {
 
     inner class ListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -27,12 +27,23 @@ class ListRemoteAdapter(private val listRemote: ArrayList<Remote>) :
 
 
         holder.btn.setText(remote.remoteName)
-
-//        TODO("INTENT + SEND DATA FROM ROOM")
+        holder.btn.setOnClickListener {
+            listener.onClick(remote)
+        }
     }
 
     override fun getItemCount(): Int {
         return listRemote.size
+    }
+
+    fun setData(list: List<Remote>){
+        listRemote.clear()
+        listRemote.addAll(list)
+        notifyDataSetChanged()
+    }
+
+    interface onClickListener{
+        fun onClick(remote: Remote)
     }
 
 }

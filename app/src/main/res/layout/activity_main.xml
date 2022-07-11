@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black_figma"
     tools:context=".MainActivity">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -25,6 +26,7 @@
         android:layout_marginTop="16dp"
         android:fontFamily="@font/gilroy_extrabold"
         android:text="Select Your\nRemote Device"
+        android:textColor="@color/white"
         android:textSize="30sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

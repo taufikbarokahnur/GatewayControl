@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gatewaycontrol.api.RetrofitInstance
 import com.example.gatewaycontrol.room.Remote
+import com.example.gatewaycontrol.room.RemoteDB
 import com.example.gatewaycontrol.utils.Constants.Companion.REMOTE_TYPE_RF
 import com.example.gatewaycontrol.utils.Constants.Companion.REMOTE_TYPE_TV
 import kotlinx.coroutines.*
@@ -19,24 +20,42 @@ import retrofit2.awaitResponse
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var rvRemote : RecyclerView
+    private lateinit var remoteAdapter : ListRemoteAdapter
+    val db by lazy { RemoteDB(this) }
     private val api = RetrofitInstance
-    private var listRemote: ArrayList<Remote> = arrayListOf()
+//    private var listRemote: ArrayList<Remote> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        rvRemote = findViewById(R.id.rv)
-        rvRemote.setHasFixedSize(true)
 
         showRecyclerList()
     }
 
+    override fun onStart() {
+        super.onStart()
+        CoroutineScope(Dispatchers.IO).launch {
+            val remote = db.remoteDao().getAllRemote()
+            withContext(Dispatchers.Main){
+                remoteAdapter.setData(remote)
+            }
+        }
+    }
+
     private fun showRecyclerList() {
-        rvRemote.layoutManager = LinearLayoutManager(this)
-        val listRemoteAdapter = ListRemoteAdapter(listRemote)
-        rvRemote.adapter = listRemoteAdapter
+        remoteAdapter = ListRemoteAdapter(arrayListOf(), object : ListRemoteAdapter.onClickListener{
+            override fun onClick(remote: Remote) {
+                Log.d("LOG : ",remote.id.toString())
+                Log.d("LOG : ",remote.remoteName.toString())
+                Log.d("LOG : ",remote.remoteType.toString())
+            }
+        })
+        val rv : RecyclerView = findViewById(R.id.rv)
+        rv.apply {
+            layoutManager = LinearLayoutManager(applicationContext)
+            adapter = remoteAdapter
+        }
 
     }
 
@@ -141,18 +160,18 @@ class MainActivity : AppCompatActivity() {
                 startActivity(
                     Intent(this@MainActivity, AddRemoteActivity::class.java)
                 )
-                listRemote.add(Remote(0,"REMOTE TEST TV" , REMOTE_TYPE_TV))
-                rvRemote.adapter!!.notifyDataSetChanged()
+//                listRemote.add(Remote(0,"REMOTE TEST TV" , REMOTE_TYPE_TV))
+//                rvRemote.adapter!!.notifyDataSetChanged()
             }
             R.id.action_2 -> {
                 Toast.makeText(this, "ACtion 2 ", Toast.LENGTH_SHORT).show()
-                listRemote.add(Remote(1,"REMOTE TEST RF" , REMOTE_TYPE_RF))
-                rvRemote.adapter!!.notifyDataSetChanged()
+//                listRemote.add(Remote(1,"REMOTE TEST RF" , REMOTE_TYPE_RF))
+//                rvRemote.adapter!!.notifyDataSetChanged()
             }
             R.id.action_3 -> {
                 Toast.makeText(this, "ACtion 3 Muehehe", Toast.LENGTH_SHORT).show()
-                listRemote.add(Remote(2,"REMOTE" , REMOTE_TYPE_RF))
-                rvRemote.adapter!!.notifyDataSetChanged()
+//                listRemote.add(Remote(2,"REMOTE" , REMOTE_TYPE_RF))
+//                rvRemote.adapter!!.notifyDataSetChanged()
             }
         }
     }
